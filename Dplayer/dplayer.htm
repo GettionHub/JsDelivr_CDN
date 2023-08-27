@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="pragma" content="no-cache">
+    <meta name="referrer" content="never" />
+    <meta http-equiv="X-UA-Compatible" content="IE=11" />
+    <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" id="viewport" name="viewport">
+    <link rel="stylesheet" href="./Dplayer/DPlayer.min.css"> 
+    <title><?php echo $conf['title'] ?></title>
+    <link rel="shortcut icon" href="./Dplayer/favicon.ico" type="image/x-icon">
+    <?php if($conf['debug']){ ?>
+    <script src="./Dplayer/fuck-debugger.js"></script>
+	<?php } ?>  
+    <?php
+    if (!strpos($vurl, '.flv')){
+        if ($conf["p2p"]) {
+            echo ('<script type="text/javascript" src="./Dplayer/Hls.min.js"></script>');
+        }else {
+            echo ('<script type="text/javascript" src="./Dplayer/Hls.p2p.js"></script>');
+        }
+    }else {
+        echo ('<script type="text/javascript" src="./Dplayer/Flv.min.js"></script>');
+    }
+    ?>
+   <?php 
+   $logo_width_height = explode(",", $conf["logo_wh"]);
+   ?>    
+    <script type="text/javascript" src="./Dplayer/DPlayer.min.js"></script>
+    <script src="./Dplayer/jquery.min.js"></script>
+    <style type="text/css">html,body{height:100%;margin:0;padding:0;overflow:hidden;text-align:center;background:#181818} *{margin:0;border:0;padding:0;text-decoration:none} #video{height:100%} .dplayer-logo{max-width:<?php echo $logo_width_height[1];?>px;max-height:<?php echo $logo_width_height[1];?>px;left:auto;right:5%;top:5%}</style>
+    <script type="text/javascript">$("#my-loading", parent.document).remove();</script>
+  </head>
+<body>
+<div id="video"></div>
+<script type="text/javascript">
+var urls = "<?php echo $url;?>";
+var next = "<?php echo $next;?>";
+var url = "<?php echo $vurl;?>";
+var dp = new DPlayer({
+    container: document.getElementById('video'),
+    theme: '#FF0000', 
+    volume: 0.8,
+    screenshot: true,
+    <?php
+    echo 'logo:"'.$conf["logo"].'",';
+	echo 'autoplay: true,';?>
+    video: {
+	    url: url,<?php echo 'pic: "'.$conf["pic"].'",';?>type: 'auto',
+		defaultQuality: 0
+	}
+    ,contextmenu: [{<?php echo 'text: "'.$conf["right_wenzi"].'",link: "'.$conf["right_link"].'"';?>}]});
+dp.on("fullscreen",function() {
+    dp.notice("全屏已开启");
+});
+dp.on("fullscreen_cancel",function() {
+    dp.notice("全屏已关闭");
+});
+</script>
+
+<script type="text/javascript">
+        var cookie = {
+          'set': function(name, value, days) {
+            var exp = new Date();
+            exp.setTime(exp.getTime() + days * 24 * 60 * 60 * 1000);
+            var arr = document.cookie.match(new RegExp('(^| )' + name + '=([^;]*)(;|$)'));
+            document.cookie = name + '=' + escape(value) + ';path=/;expires=' + exp.toUTCString();
+          },
+          'get': function(name) {
+            var arr = document.cookie.match(new RegExp('(^| )' + name + '=([^;]*)(;|$)'));
+            if (arr != null) return unescape(arr[2]);
+          },
+          'put': function(urls) {
+            var cookie = urls.replace(/[^a-z]+/ig, '');
+            var cookie = cookie.substring(cookie.length - 32);
+            return cookie;
+          }
+        }
+        dp.on('loadeddata',function() {
+          cookie.get(urls) ? dp.seek(cookie.get(urls)) : dp.notice("视频已就绪");
+          dp.on('timeupdate',function() {
+            if (cookie) cookie.set(urls, dp.video.currentTime, 30);
+          });
+        });
+        dp.on('ended',function() {
+          dp.notice("视频播放已结束");
+          if (next != '') {
+            top.location.href = next;
+          }        });
+</script>
+</body>
+</html>
